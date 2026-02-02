@@ -6,8 +6,9 @@ pipeline {
         DOCKER_IMAGE = "house-price-api"
         DOCKER_CONTAINER = "house-price-container"
 
-        // DockerHub credential (ID in Jenkins: dockerhub-username)
-        DOCKERHUB_CRED = credentials('dockerhub-username')
+        // DockerHub credentials (single credential in Jenkins with ID 'dockerhub-username')
+        DOCKERHUB_USR = credentials('dockerhub-username_USR')
+        DOCKERHUB_PSW = credentials('dockerhub-username_PSW')
 
         // Ensure Jenkins can find docker and python
         PATH = "/usr/local/bin:${env.PATH}"
@@ -15,7 +16,6 @@ pipeline {
 
     stages {
 
-        // -------------------------
         stage('Checkout Code') {
             steps {
                 echo "Checking out code from Git"
@@ -23,7 +23,6 @@ pipeline {
             }
         }
 
-        // -------------------------
         stage('Set Up Python Environment') {
             steps {
                 echo "Creating Python virtual environment and installing dependencies"
@@ -36,7 +35,6 @@ pipeline {
             }
         }
 
-        // -------------------------
         stage('Train Model') {
             steps {
                 echo "Training the ML model"
@@ -47,7 +45,6 @@ pipeline {
             }
         }
 
-        // -------------------------
         stage('Run Tests') {
             steps {
                 echo "Running unit tests"
@@ -58,7 +55,6 @@ pipeline {
             }
         }
 
-        // -------------------------
         stage('Build Docker Image') {
             steps {
                 echo "Building Docker image: ${DOCKER_IMAGE}"
@@ -66,22 +62,20 @@ pipeline {
             }
         }
 
-        // -------------------------
-        stage('Optional: Push Docker Image to DockerHub') {
+        stage('Push Docker Image to DockerHub') {
             when {
-                expression { return env.DOCKERHUB_CRED_USR != null && env.DOCKERHUB_CRED_PSW != null }
+                expression { return env.DOCKERHUB_USR && env.DOCKERHUB_PSW }
             }
             steps {
                 echo "Pushing Docker image to DockerHub"
                 sh '''
-                echo $DOCKERHUB_CRED_PSW | docker login -u $DOCKERHUB_CRED_USR --password-stdin
-                docker tag ${DOCKER_IMAGE} $DOCKERHUB_CRED_USR/${DOCKER_IMAGE}:latest
-                docker push $DOCKERHUB_CRED_USR/${DOCKER_IMAGE}:latest
+                echo $DOCKERHUB_PSW | docker login -u $DOCKERHUB_USR --password-stdin
+                docker tag ${DOCKER_IMAGE} $DOCKERHUB_USR/${DOCKER_IMAGE}:latest
+                docker push $DOCKERHUB_USR/${DOCKER_IMAGE}:latest
                 '''
             }
         }
 
-        // -------------------------
         stage('Deploy Container') {
             steps {
                 echo "Stopping old container and running new one"

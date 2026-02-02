@@ -6,7 +6,7 @@ pipeline {
         DOCKER_IMAGE = "house-price-api"
         DOCKER_CONTAINER = "house-price-container"
 
-        // Optional: DockerHub credentials (make sure these exist in Jenkins)
+        // DockerHub credentials (make sure these exist in Jenkins)
         DOCKERHUB_USER = credentials('dockerhub-username')
         DOCKERHUB_PASS = credentials('dockerhub-password')
 
@@ -70,7 +70,7 @@ pipeline {
         // -------------------------
         stage('Optional: Push Docker Image to DockerHub') {
             when {
-                expression { return env.DOCKERHUB_USER != null && env.DOCKERHUB_PASS != null }
+                expression { env.DOCKERHUB_USER && env.DOCKERHUB_PASS }
             }
             steps {
                 echo "Pushing Docker image to DockerHub"
@@ -97,10 +97,8 @@ pipeline {
 
     post {
         always {
-            node {
-                echo "Cleaning up temporary files"
-                sh 'rm -rf venv'
-            }
+            echo "Cleaning up temporary files"
+            sh 'rm -rf venv'
         }
         success {
             echo "Pipeline completed successfully!"

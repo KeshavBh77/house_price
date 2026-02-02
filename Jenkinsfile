@@ -6,10 +6,10 @@ pipeline {
         DOCKER_IMAGE = "house-price-api"
         DOCKER_CONTAINER = "house-price-container"
 
-        // Single DockerHub credential (username + password)
+        // DockerHub credential (ID in Jenkins: dockerhub-username)
         DOCKERHUB_CRED = credentials('dockerhub-username')
 
-        // Ensure Jenkins can find docker
+        // Ensure Jenkins can find docker and python
         PATH = "/usr/local/bin:${env.PATH}"
     }
 
@@ -74,9 +74,9 @@ pipeline {
             steps {
                 echo "Pushing Docker image to DockerHub"
                 sh '''
-                echo ${DOCKERHUB_CRED_PSW} | docker login -u ${DOCKERHUB_CRED_USR} --password-stdin
-                docker tag ${DOCKER_IMAGE} ${DOCKERHUB_CRED_USR}/${DOCKER_IMAGE}:latest
-                docker push ${DOCKERHUB_CRED_USR}/${DOCKER_IMAGE}:latest
+                echo $DOCKERHUB_CRED | docker login -u $DOCKERHUB_CRED --password-stdin
+                docker tag ${DOCKER_IMAGE} $DOCKERHUB_CRED/${DOCKER_IMAGE}:latest
+                docker push $DOCKERHUB_CRED/${DOCKER_IMAGE}:latest
                 '''
             }
         }
@@ -96,10 +96,8 @@ pipeline {
 
     post {
         always {
-            node {
-                echo "Cleaning up temporary files"
-                sh 'rm -rf venv'
-            }
+            echo "Cleaning up temporary files"
+            sh 'rm -rf venv'
         }
         success {
             echo "Pipeline completed successfully!"

@@ -69,14 +69,14 @@ pipeline {
         // -------------------------
         stage('Optional: Push Docker Image to DockerHub') {
             when {
-                expression { return env.DOCKERHUB_CRED != null }
+                expression { return env.DOCKERHUB_CRED_USR != null && env.DOCKERHUB_CRED_PSW != null }
             }
             steps {
                 echo "Pushing Docker image to DockerHub"
                 sh '''
-                echo $DOCKERHUB_CRED | docker login -u $DOCKERHUB_CRED --password-stdin
-                docker tag ${DOCKER_IMAGE} $DOCKERHUB_CRED/${DOCKER_IMAGE}:latest
-                docker push $DOCKERHUB_CRED/${DOCKER_IMAGE}:latest
+                echo $DOCKERHUB_CRED_PSW | docker login -u $DOCKERHUB_CRED_USR --password-stdin
+                docker tag ${DOCKER_IMAGE} $DOCKERHUB_CRED_USR/${DOCKER_IMAGE}:latest
+                docker push $DOCKERHUB_CRED_USR/${DOCKER_IMAGE}:latest
                 '''
             }
         }

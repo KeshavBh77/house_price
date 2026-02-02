@@ -85,8 +85,9 @@ pipeline {
 
     post {
         always {
-            node { // Fix MissingContextVariableException
-                echo "Cleaning up temporary files"
+            echo "Cleaning up temporary files"
+            script {
+                // Run shell cleanup inside script block to avoid hudson.FilePath error
                 sh 'rm -rf venv'
             }
         }

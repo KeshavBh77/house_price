@@ -6,9 +6,8 @@ pipeline {
         DOCKER_IMAGE = "house-price-api"
         DOCKER_CONTAINER = "house-price-container"
 
-        // DockerHub credentials (make sure these exist in Jenkins)
-        DOCKERHUB_USER = credentials('dockerhub-username')
-        DOCKERHUB_PASS = credentials('dockerhub-password')
+        // Single DockerHub credential (username + password)
+        DOCKERHUB_CRED = credentials('dockerhub-username')
 
         // Ensure Jenkins can find docker
         PATH = "/usr/local/bin:${env.PATH}"
@@ -70,14 +69,14 @@ pipeline {
         // -------------------------
         stage('Optional: Push Docker Image to DockerHub') {
             when {
-                expression { env.DOCKERHUB_USER && env.DOCKERHUB_PASS }
+                expression { return env.DOCKERHUB_CRED != null }
             }
             steps {
                 echo "Pushing Docker image to DockerHub"
                 sh '''
-                echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin
-                docker tag ${DOCKER_IMAGE} $DOCKERHUB_USER/${DOCKER_IMAGE}:latest
-                docker push $DOCKERHUB_USER/${DOCKER_IMAGE}:latest
+                echo ${DOCKERHUB_CRED_PSW} | docker login -u ${DOCKERHUB_CRED_USR} --password-stdin
+                docker tag ${DOCKER_IMAGE} ${DOCKERHUB_CRED_USR}/${DOCKER_IMAGE}:latest
+                docker push ${DOCKERHUB_CRED_USR}/${DOCKER_IMAGE}:latest
                 '''
             }
         }
@@ -97,8 +96,10 @@ pipeline {
 
     post {
         always {
-            echo "Cleaning up temporary files"
-            sh 'rm -rf venv'
+            node {
+                echo "Cleaning up temporary files"
+                sh 'rm -rf venv'
+            }
         }
         success {
             echo "Pipeline completed successfully!"

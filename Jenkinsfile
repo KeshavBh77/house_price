@@ -37,17 +37,6 @@ pipeline {
         }
 
         // -------------------------
-        stage('Train Model') {
-            steps {
-                echo "Training the ML model"
-                sh '''
-                . venv/bin/activate
-                python train.py
-                '''
-            }
-        }
-
-        // -------------------------
         stage('Run Tests') {
             steps {
                 echo "Running unit tests"

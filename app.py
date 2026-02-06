@@ -1,47 +1,30 @@
-from flask import Flask, request, jsonify
-import joblib
+from flask import Flask, request, jsonify, render_template
+import pickle
 import numpy as np
-import os
 
 app = Flask(__name__)
 
-# Load trained model
-MODEL_PATH = "model.pkl"
+# Load your ML model
+with open('model.pkl', 'rb') as f:
+    model = pickle.load(f)
 
-if not os.path.exists(MODEL_PATH):
-    raise RuntimeError("model.pkl not found. Did you train the model before running the app?")
-
-model = joblib.load(MODEL_PATH)
-
-@app.route("/", methods=["GET"])
+# Serve the HTML page
+@app.route('/')
 def home():
-    """Root endpoint to check if API is running"""
-    return jsonify({"message": "House Price Prediction API is running"}), 200
+    return render_template('index.html')
 
-@app.route("/health", methods=["GET"])
-def health():
-    """Health check endpoint"""
-    return jsonify({"status": "healthy"}), 200
-
-@app.route("/predict", methods=["POST"])
+# Prediction endpoint
+@app.route('/predict', methods=['POST'])
 def predict():
-    """Predict house price from features"""
-    try:
-        data = request.json.get("features")
-        if data is None:
-            return jsonify({"error": "No features provided"}), 400
+    data = request.get_json()
+    bedrooms = data.get('bedrooms', 0)
+    bathrooms = data.get('bathrooms', 0)
+    area = data.get('area', 0)
 
-        # Convert input to numpy array and reshape
-        features = np.array(data).reshape(1, -1)
-        prediction = model.predict(features)
+    # Example: model expects [bedrooms, bathrooms, area] as input
+    prediction = model.predict(np.array([[bedrooms, bathrooms, area]]))[0]
 
-        return jsonify({"predicted_house_price": float(prediction[0])}), 200
+    return jsonify({'price': float(prediction)})
 
-    except ValueError as ve:
-        return jsonify({"error": f"Invalid input shape or type: {ve}"}), 400
-    except Exception as e:
-        return jsonify({"error": f"Prediction failed: {e}"}), 500
-
-if __name__ == "__main__":
-    # Use 0.0.0.0 to allow Docker to bind the port
-    app.run(host="0.0.0.0", port=5001, debug=True)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5001)

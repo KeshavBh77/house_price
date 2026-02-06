@@ -48,12 +48,20 @@ pipeline {
         }
 
         // -------------------------
-        stage('Build Docker Image') {
-            steps {
-                echo "Building Docker image: ${DOCKER_IMAGE}"
-                sh "docker build -t ${DOCKER_IMAGE} ."
-            }
-        }
+        stage('Build & Push Docker Image') {
+    steps {
+        echo "Building and pushing Docker image for linux/amd64"
+
+        sh '''
+        docker buildx create --use --name multiarch-builder || true
+
+        docker buildx build \
+          --platform linux/amd64 \
+          -t $DOCKERHUB_CRED_USR/${DOCKER_IMAGE}:latest \
+          --push .
+        '''
+    }
+}
 
         // -------------------------
         stage('Optional: Push Docker Image to DockerHub') {

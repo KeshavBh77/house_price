@@ -80,14 +80,17 @@ pipeline {
 
         // -------------------------
         stage('Deploy Container') {
-            steps {
-                echo "Stopping old container and running new one"
-                sh """
-                docker rm -f ${DOCKER_CONTAINER} || true
-                docker run -d -p 80:5001 --name ${DOCKER_CONTAINER} ${DOCKER_IMAGE}
-                """
-            }
-        }
+    steps {
+        echo "Stopping old container and running new one"
+        sh '''
+        docker rm -f house-price-container || true
+        docker run -d \
+          -p 5001:5001 \
+          --name house-price-container \
+          keshavbh77/house-price-api:latest
+        '''
+    }
+}
 
     }
 

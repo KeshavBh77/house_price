@@ -1,12 +1,11 @@
 from flask import Flask, request, jsonify, render_template
-import pickle
+import joblib
 import numpy as np
 
 app = Flask(__name__)
 
 # Load your ML model
-with open('model.pkl', 'rb') as f:
-    model = pickle.load(f)
+model = joblib.load('model.pkl')
 
 # Serve the HTML page
 @app.route('/')
@@ -21,7 +20,6 @@ def predict():
     bathrooms = data.get('bathrooms', 0)
     area = data.get('area', 0)
 
-    # Example: model expects [bedrooms, bathrooms, area] as input
     prediction = model.predict(np.array([[bedrooms, bathrooms, area]]))[0]
 
     return jsonify({'price': float(prediction)})
